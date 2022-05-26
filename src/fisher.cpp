@@ -6,7 +6,7 @@
 #include <cmath>
 #include <iostream>
 
-#define expr expr_junopes
+#define expr expr_junoes
 
 using namespace std;
 
@@ -16,9 +16,9 @@ int main() {
 
     double lambda[NBins] = {0.};
     double dlambda[ndim][NBins] = {0.};
-//    rateGen(expr, default_x, 10., lambda, NBins);
+    rateGen(expr, default_x, 10., lambda, NBins);
 //    pygetSpecArgo(default_x, lambda);
-    pygetSpecResNova(default_x, lambda);
+//    pygetSpecResNova(default_x, lambda);
     diff_5p(default_x, 1e-3, dlambda);
     /*
     for(size_t k = 0; k != ndim; ++k) {
@@ -29,22 +29,37 @@ int main() {
     }
     */
 
+    char labels[ndim][10] = {"ae", "aebar", "ax", 
+                             "<Ee>", "<Eebar>", "<Ex>",
+                             "Ee", "Eebar", "Ex"};
     arma::mat sampler;
     genmcmc(lambda, sampler);
     double N[NBins];
     double tmp, sum = 0.;
     printf("fisher[ndim]:\n");
-    for(size_t nd = 0; nd != ndim; ++nd) {
-        for(size_t k = 0; k != ndraw; ++k) {
-            for(size_t bin = 0; bin != NBins; ++bin) {
-                N[bin] = sampler(k, bin);
+    for(size_t i = 0; i != ndim; ++i) {
+        printf("%10s", labels[i]); // vertical label
+        for(size_t j = 0; j <= i; ++j) {
+            for(size_t k = 0; k != ndraw; ++k) {
+                for(size_t bin = 0; bin != NBins; ++bin) {
+                    N[bin] = sampler(k, bin);
+                }
+                if(i == j) {
+                    tmp = pLLHi(N, lambda, dlambda[i]);
+                    sum += tmp * tmp;
+                } else {
+                    sum += pLLHi(N, lambda, dlambda[i]) * pLLHi(N, lambda, dlambda[j]);
+                }
             }
-            tmp = pLLHi(N, lambda, dlambda[nd]);
-            sum += tmp * tmp; // square
+            printf("% 10.2E", sum/ndraw);
+            sum = 0.;
         }
-        printf("fisher[%lu]=%-9.5E\n", nd, sum/ndraw);
-        sum = 0.;
+        printf("\n");
+        fflush(stdout);
     }
+    printf("%10s", " ");
+    for(size_t i = 0; i != ndim; ++i) printf("%10s", labels[i]); printf("\n");
+    fflush(stdout);
 
     return 0;
 }
@@ -79,9 +94,9 @@ void diff_5p(double x0[], double h, double res[ndim][NBins]) {
     for(size_t k = 0; k != ndim; ++k) {
         for(size_t hindex = 0; hindex != 4; ++hindex) {
             x[k] = x0[k] + delta[hindex];
-//            rateGen(expr, x, 10., lamb, NBins);
+            rateGen(expr, x, 10., lamb, NBins);
 //            pygetSpecArgo(x, lamb);
-            pygetSpecResNova(x, lamb);
+//            pygetSpecResNova(x, lamb);
             for(size_t bin = 0; bin != NBins; ++bin) {
                 res[k][bin] += coeff[hindex] * lamb[bin] * oneover12h;
             }

@@ -6,7 +6,7 @@
 #include "pySNvC.h"
 
 enum {
-   NBins = NBinsRes,
+   NBins = NBinsJUNO,
    ndim = 9 // 9 flux parameters
 };
 
