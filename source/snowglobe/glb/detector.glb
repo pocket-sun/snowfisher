@@ -1,5 +1,0 @@
-
-/* ####### Detector settings ####### */
-
-$target_mass = 	        100*(2/18)     /* ktons of free protons */
-
